@@ -23,9 +23,9 @@ import java.security.SignatureException
  * @property checkSufficientSignatures if true checks all required signatures are present. See [SignedTransaction.verify].
  * @property statesToRecord which transaction states should be recorded in the vault, if any.
  */
-class ReceiveTransactionFlow @JvmOverloads constructor(private val otherSideSession: FlowSession,
-                                                       private val checkSufficientSignatures: Boolean = true,
-                                                       private val statesToRecord: StatesToRecord = StatesToRecord.NONE) : FlowLogic<SignedTransaction>() {
+open class ReceiveTransactionFlow @JvmOverloads constructor(private val otherSideSession: FlowSession,
+                                                            private val checkSufficientSignatures: Boolean = true,
+                                                            private val statesToRecord: StatesToRecord = StatesToRecord.NONE) : FlowLogic<SignedTransaction>() {
     @Suppress("KDocMissingDocumentation")
     @Suspendable
     @Throws(SignatureException::class,
@@ -41,6 +41,7 @@ class ReceiveTransactionFlow @JvmOverloads constructor(private val otherSideSess
         val stx = otherSideSession.receive<SignedTransaction>().unwrap {
             it.pushToLoggingContext()
             logger.info("Received transaction acknowledgement request from party ${otherSideSession.counterparty.name}.")
+            checkTransaction(it)
             subFlow(ResolveTransactionsFlow(it, otherSideSession))
             logger.info("Transaction dependencies resolution completed.")
             try {
@@ -60,6 +61,14 @@ class ReceiveTransactionFlow @JvmOverloads constructor(private val otherSideSess
         }
         return stx
     }
+
+    /**
+     * Hook to perform extra checks on the received transaction. This is before the transaction has been resolved,
+     * verified or recorded.
+     */
+    @Suspendable
+    @Throws(FlowException::class)
+    protected open fun checkTransaction(stx: SignedTransaction) = Unit
 }
 
 /**

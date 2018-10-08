@@ -9,7 +9,6 @@ import net.corda.core.internal.createDirectories
 import net.corda.core.internal.div
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.getOrThrow
-import net.corda.core.utilities.loggerFor
 import net.corda.node.VersionInfo
 import net.corda.node.internal.Node
 import net.corda.node.internal.NodeWithInfo
@@ -32,8 +31,10 @@ import java.nio.file.Path
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 
-// TODO Some of the logic here duplicates what's in the driver - the reason why it's not straightforward to replace it by
-// using DriverDSLImpl in `init()` and `stopAllNodes()` is because of the platform version passed to nodes (driver doesn't
+// TODO Some of the logic here duplicates what's in the driver - the reason why it's not straightforward to replace it
+// by
+// using DriverDSLImpl in `init()` and `stopAllNodes()` is because of the platform version passed to nodes (driver
+// doesn't
 // support this, and it's a property of the Corda JAR)
 abstract class NodeBasedTest(private val cordappPackages: List<String> = emptyList()) {
     companion object {
